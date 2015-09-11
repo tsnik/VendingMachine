@@ -72,10 +72,10 @@ namespace VendingMachine
         public override string ToString()
         {
             string tmp = "";
-            tmp += string.Format("{0,5} {1,20}, {2,10}, {3,5}\n", "Номер", "Название", "Цена", "Количество");
+            tmp += string.Format("{0,5} {1,20} {2,10} {3,5}\n", "Номер", "Название", "Цена", "Количество");
             for(int i=0;i<_itemsNames.Length;i++)
             {
-                tmp += string.Format("{0,5} {1,20}, {2,10}, {3,5}\n", i, _itemsNames[i], _itemsPrices[i], _itemsNums[i]);
+                tmp += string.Format("{0,5} {1,20} {2,10} {3,5}\n", i, _itemsNames[i], _itemsPrices[i], _itemsNums[i]);
             }
 
             tmp += "Внесено: " + UserMoney + "\n";
@@ -84,9 +84,9 @@ namespace VendingMachine
     }
 
     /// <summary>
-    /// Кошелек. Структура, хранящая денежные средства в виде монет.
+    /// Кошелек. Хранит денежные средства в виде монет.
     /// </summary>
-    struct Wallet
+    class Wallet
     {
         private uint[] _values = { 1, 2, 5, 10 }; //Сортированный массив номиналов монет
         public uint[] Coins = { 0, 0, 0, 0 }; //Массив количеств монет
