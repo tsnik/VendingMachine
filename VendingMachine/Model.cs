@@ -23,7 +23,7 @@ namespace VendingMachine
         public Machine(string[] itemsNames, uint[] itemsPrices, uint[] itemsNums)
         {
             if (itemsNames.Length != itemsNums.Length || itemsNames.Length != itemsPrices.Length)
-                throw new ArgumentException("Array lengths have to be equal.");
+                throw new ArgumentException("Длины массивов должны быть равными");
             _itemsNames = (string[])itemsNames.Clone();
             _itemsPrices = (uint[])itemsPrices.Clone();
             _itemsNums = (uint[])itemsNums.Clone();
@@ -36,7 +36,7 @@ namespace VendingMachine
         /// <param name="m">Кошелек с монетами</param>
         public void PutMoney(Wallet m)
         {
-            UserMoney = m.Total;
+            UserMoney += m.Total;
             _wal.AddMoney(m);
         }
 
@@ -49,9 +49,9 @@ namespace VendingMachine
             if (id < 0 || id > _itemsPrices.Length - 1)
                 throw new IndexOutOfRangeException();
             if (_itemsNums[id] < 1)
-                throw new ArgumentException("Product is not available.");
+                throw new ArgumentException("Продукта с данным номеров нет.");
             if (UserMoney < _itemsPrices[id])
-                throw new ArgumentException("Not enough money.");
+                throw new ArgumentException("Не достаточно денег.");
             _itemsNums[id]--;
             UserMoney -= _itemsPrices[id];
         }
@@ -62,7 +62,16 @@ namespace VendingMachine
         /// <returns>Кошелек со сдачей</returns>
         public Wallet ReturnChange()
         {
-            return _wal.GetMoney(UserMoney);
+            try
+            {
+                Wallet tmp = _wal.GetMoney(UserMoney);
+                UserMoney = 0;
+                return tmp;
+            }
+            catch (ArgumentException e)
+            {
+                throw new ArgumentException("Нет сдачи.");
+            }
         }
 
         /// <summary>
@@ -73,7 +82,7 @@ namespace VendingMachine
         {
             string tmp = "";
             tmp += string.Format("{0,5} {1,20} {2,10} {3,5}\n", "Номер", "Название", "Цена", "Количество");
-            for(int i=0;i<_itemsNames.Length;i++)
+            for (int i = 0; i < _itemsNames.Length; i++)
             {
                 tmp += string.Format("{0,5} {1,20} {2,10} {3,5}\n", i, _itemsNames[i], _itemsPrices[i], _itemsNums[i]);
             }
@@ -105,7 +114,7 @@ namespace VendingMachine
         public Wallet(uint[] coins)
         {
             if (coins.Length != _values.Length)
-                throw new ArgumentException("Array of invalid length.");
+                throw new ArgumentException("Неверная длина массива.");
             Coins = (uint[])coins.Clone();
         }
 
@@ -147,15 +156,23 @@ namespace VendingMachine
         {
             Wallet tmp = new Wallet();
             int res = -1;
-            while (res != -1)
+            try
             {
-                if (res != -1)
+                do
                 {
-                    total -= _values[res];
-                    Coins[res]--;
-                    tmp.Coins[res]++;
-                }
-                res = ChooseCoin(total);
+                    if (res != -1)
+                    {
+                        total -= _values[res];
+                        Coins[res]--;
+                        tmp.Coins[res]++;
+                    }
+                    res = ChooseCoin(total);
+                } while (res != -1);
+            }
+            catch (ArgumentException e)
+            {
+                this.AddMoney(tmp);
+                throw e;
             }
             return tmp;
         }
@@ -199,11 +216,11 @@ namespace VendingMachine
                 return -1;
 
             int e = _values.Length;
-            while (_values[e - 1] > total || _values[e - 1] == 0)
+            while (_values[e - 1] > total || Coins[e - 1] == 0)
             {
                 e--;
-                if (e < 0)
-                    throw new ArgumentOutOfRangeException("It's impossible to get asked Sum with available coins.");
+                if (e <= 0)
+                    throw new ArgumentException("Недостаточно средств или невозможно набрать данную сумму имеющимися монетами");
             }
             return e - 1;
         }
@@ -219,7 +236,7 @@ namespace VendingMachine
                 return -1;
 
             if (total < _values[0])
-                throw new ArgumentOutOfRangeException("It's impossible to create Wallet with current value with allowed coins.");
+                throw new ArgumentOutOfRangeException("Невозможно создать кошелек с заданной суммой из имебщегося набора монет.");
 
             int e = _values.Length;
             while (_values[e - 1] > total)
